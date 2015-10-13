@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="fr">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Un point sur Docker et la sécurité</title>
+
+		<meta name="description" content="Un point sur Docker et la sécurité">
+		<meta name="author" content="Thomas Gerbet">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<img src="data/securimag.png" width="250px" style="border: none; box-shadow: none; position: relative; left: 55%; top: -60px;">
+					<h2>Un point sur Docker et la sécurité</h2>
+					<p>08/10/2015</p>
+					<img src="data/docker-logo.png" width="640px" style="border: none; box-shadow: none;">
+				</section>
+
+				<section>
+					<h2>Au programme</h2>
+					<ol>
+						<li>Qu'est ce que je fous là ?</li>
+						<li>C'est quoi Docker ?</li>
+						<li>Comment ca marche</li>
+						<li>Isolation des containers</li>
+						<li>Distribution et signature des images</li>
+						<li>Et pour le futur ?</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>Qu'est ce que je fous là ?</h2>
+					<img src="data/alpaca_whoami.jpg" alt="https://www.flickr.com/photos/rogeraj/9309136199" width="300px">
+					<img src="data/beers.jpg" width="300px">
+				</section>
+
+				<section>
+					<h2>C'est quoi Docker ?</h2>
+					<p>
+						Un croisement entre chroot et une VM
+					</p>
+					<img src="data/what-is-vm-diagram.png" width="300px">
+					<img src="data/what-is-docker-diagram.png" width="300px">
+				</section>
+
+				<section>
+					<h2>Pourquoi faire ?</h2>
+					<ul>
+						<li>Environnements reproductibles jetables</li>
+						<li>Facilité de déploiement et de passage à l'échelle</li>
+						<li>Rollback aisé en cas de problème</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Comment ca marche ?</h2>
+					<img src="data/architecture.png" style="border: none; box-shadow: none;">
+				</section>
+
+				<section>
+					<h2>Comment ca marche ?</h2>
+					<div>
+						S'appuie sur des fonctionnalités du noyau Linux :
+						<ul>
+							<li><em>cgroups</em> : gestion des ressources</li>
+							<li><em>namespaces</em> : isolation</li>
+							<li><em>capabilities</em> : gestion fine des permissions</li>
+						</ul>
+						Réf. : <a href="http://fr.slideshare.net/jpetazzo/anatomy-of-a-container-namespaces-cgroups-some-filesystem-magic-linuxcon">Anatomy of a Container</a>
+					</div>
+				</section>
+
+				<section>
+					<h2><a href="http://alex.hyperiongray.com/posts/302352-pwn-the-docs">Vulnérabilité ReadTheDocs.org</a></h2>
+					<p>
+						<a href="http://sphinx-doc.org/">Sphinx</a> <br>
+						&#8595; <br>
+						<a href="https://docs.readthedocs.org/en/latest/architecture.html">Système de build interne</a> <br>
+						&#8595; <br>
+						Les Internets
+					</p>
+					<img src="data/kitten1.jpg" height="200px">
+					<img src="data/kitten2.jpg" height="200px">
+					<img src="data/kitten3.jpg" height="200px">
+				</section>
+
+				<section>
+					<h2>Vulnérabilité ReadTheDocs.org</h2>
+					<ul>
+						<li>Exécution de code arbitraire</li>
+						<li>Processus de build commun entre les utilisateurs</li>
+					</ul>
+					<img src="data/readthedocs_fail.jpg" height="400px">
+				</section>
+
+				<section>
+					<h2>Isoler le processus de build</h2>
+					<p>
+						Une construction = <br>
+						un container immutable + un container de data <em>(noexec)</em>
+					</p>
+				</section>
+
+				<section>
+					<h2>Hardening</h2>
+					<p>Du bon sens !</p>
+					<img src="data/gatsby.gif">
+				</section>
+
+				<section>
+					<h2>Hardening</h2>
+					<ul>
+						<li>Exécuter du code en lequel vous avez confiance</li>
+						<li>Rien ne tourne en root !</li>
+						<li>Utiliser SELinux/AppArmor pour attribuer des contextes adaptés</li>
+						<li>Noyau durci : PaX et grsec</li>
+						<li>Réduire la liste des syscall disponibles <em>(seccomp)</em></li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Hardening de services systèmes</h2>
+					<ul>
+						<li>Limiter l'accès aux <em>devices</em> <em>(cgroups)</em></li>
+						<li>
+							Gestion fine des permissions superutilisateur <em>(capabilities)</em>
+							<ul>
+								<li>CAP_NET_RAW</li>
+								<li>CAP_SYS_ADMIN</li>
+								<li>&hellip;</li>
+							</ul>
+						</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Docker bonnes pratiques</h2>
+					<div>
+						2 bonnes références d'introduction et plus :
+						<ul>
+							<li>White Paper <a href="https://d3oypxn00j2a10.cloudfront.net/assets/img/Docker%20Security/WP_Intro_to_container_security_03.20.2015.pdf">Intro to Container Security</a></li>
+							<li><a href="https://benchmarks.cisecurity.org/tools2/docker/CIS_Docker_1.6_Benchmark_v1.0.0.pdf">CIS Docker 1.6 Benchmark</a></li>
+						</ul>
+					</div>
+				</section>
+
+				<section>
+					<h2>Défense en profondeur</h2>
+					<p>Une solution hybride : des containers dans une VM</p>
+					<figure>
+						<img src="data/deeper.gif">
+						<figcaption>We need to go deeper</figcaption>
+					</figure>
+				</section>
+
+				<section>
+					<h2><a href="https://hyper.sh/"><img src="data/hyper_logo.png" width="180px" alt="Hyper"></a></h2>
+					<img src="data/hyper_archi.png" width="650px">
+				</section>
+
+				<section>
+					<h2>Distribution des images</h2>
+					<h3><a href="https://docs.docker.com/v1.7/reference/api/hub_registry_spec/">Le passé <em>(Registry v1)</em></a></h3>
+					<ul>
+						<li>ID des <em>layers</em> arbitraire</li>
+						<li>Pas de vérification d'intégrité</li>
+					</ul>
+					<img src="data/docker-filesystems-multilayer.png" height="350px">
+				</section>
+
+				<section>
+					<h2>Distribution des images</h2>
+					<h3><a href="https://docs.docker.com/registry/">Actuellement <em>(Registry v2)</em></a></h3>
+					<ul>
+						<li>ID calculé depuis le contenu du <em>layer</em></li>
+						<li>Manisfest des images signé</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Distribution des images</h2>
+					<h3><a href="https://github.com/docker/notary">Notary</a></h3>
+					<p>Objectif : rendre <em>curl http://exemple.com/script.sh | sh</em> sûr</p>
+					<ul>
+						<li>Miroirs et transport peuvent être non sûrs</li>
+						<li>Survit à la compromission d'une clé</li>
+						<li>Choix des seuils de confiance</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>En résumé</h2>
+					<ul>
+						<li>Un service = un container</li>
+						<li>Réduire le plus possible les possibilités au sein de chaque container</li>
+						<li>Penser à la distribution</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Y'a quoi dans le futur ?</h2>
+					<ul>
+						<li>CaaS</li>
+						<li>Format de container and container runtime universel : <a href="https://www.opencontainers.org/">Open Container Initiative</a></li>
+						<li>Standards ouvert poussés par les acteurs majeurs</li>
+						<li>&hellip;</li>
+					</ul>
+					<img src="data/delorean.gif">
+				</section>
+
+				<section>
+					<h1>Questions ?</h1>
+					<img src="data/alpaca_questions.jpg"  alt="https://www.flickr.com/photos/stefrobrts/5519001192/" height="450px">
+				</section>
+
+				<section>
+					<h2>Quelques références supplémentaires</h2>
+					<ul>
+						<li><a href="https://www.docker.com/docker-security">Docker Security</a></li>
+						<li><a href="https://2015.rmll.info/docker-conteneurs-securite-ou-en-est-on">RMLL 2015 : Docker, conteneurs, sécurité : où en est-on ?</a></li>
+						<li><a href="http://fr.slideshare.net/jpetazzo/docker-linux-containers-lxc-and-security">Is it safe to run applications in Linux Containers?</a></li>
+					</ul>
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+				slideNumber: true,
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
