@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="fr">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>Tour d'horizon des vulnérabilités web et contremesures communes</title>
+
+		<meta name="description" content="Un point sur Docker et la sécurité">
+		<meta name="author" content="Thomas Gerbet">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized.css" id="theme">
+
+		<!-- Code syntax highlighting -->
+		<link rel="stylesheet" href="lib/css/zenburn.css">
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<img src="data/securimag.png" width="250px" style="border: none; box-shadow: none; position: relative; left: 55%; top: -60px;">
+					<h2>Tour d'horizon des vulnérabilités web et contremesures communes</h2>
+					<p>21/01/2016</p>
+				</section>
+
+				<section>
+					<h2>Warning</h2>
+					<p><img src="data/warning.gif"></p>
+					<ul>
+						<li>Non exhaustif</li>
+						<li>Enfoncement de portes ouvertes</li>
+						<li>Choix des vulnérabilités arbitraire</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Au programme</h2>
+					<ol>
+						<li>Qu'est ce que je fous là ?</li>
+						<li>Côté serveur</li>
+						<li>Côté utilisateur</li>
+						<li>Valable des deux côtés</li>
+						<li>Démo</li>
+					</ol>
+				</section>
+
+				<section>
+					<h2>Qu'est ce que je fous là ?</h2>
+					<img src="data/baby_panda_whoami.jpg" alt="https://www.flickr.com/photos/nathaninsandiego/4256206760/in/photolist-7u7aZb-iqFb5B-65hYKK-7LurKX-dNffC1-iqFaAv-57Cv1r-7u7bim-nqHpEV-7UGpSk-94vmeq-7LyrPQ-4yrRrn-z5aErc-iqFbje-4FeJ3T-66shNL-dQZP6o-4yw7Jh-dQUfeR-dQZNTu-dQUf6B-dQUfaV-dQZPpS-dQUeWF-qkhKJT-dKwsM1-dTszw8-7wL2oM-7LnZR8-7LnZVD-7xUNuu-66o1Ae-7Lo126-dKwrtd-dSraKe-dKwsjb-8vUZr4-6B6nV9-dQUftp-4hWoCW-dQZNTQ-dQZNQU-dQUf7p-dQUfuX-dQUfn6-dQZNRm-dQUfhi-dQUeYD-dQZNJo" width="300px">
+					<img src="data/beers.jpg" width="300px">
+				</section>
+
+				<section>
+					<h2>Spoiler</h2>
+					<img src="data/star_wars_7.jpg" height="300px">
+					<p class="fragment">
+						Filtrer, valider, sanitizer <span style="text-transform : uppercase; font-weight: bold;">toutes</span> vos entrées
+					</p>
+				</section>
+
+				<section>
+					<h2>C'est tout ?</h2>
+					<p>
+						<span style="text-decoration: line-through;">Soyez stupide !</span><br>
+						N'essayez pas d'être malin !
+					</p>
+					<img src="data/stupid.jpg" height="300px">
+				</section>
+
+				<section>
+					<h1>Côté serveur</h1>
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<pre class="codeex">
+						<code>
+// FIXME: find a way to escape the flag to prevent mysql injection
+//        for now it is not possible but we don't
+//        necessarily know who will use this DAO.
+						</code>
+					</pre>
+					<img src="data/disperse.gif">
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<pre class="codeex">
+						<code>
+$username = $_GET['name'];
+$password = $_GET['password'];
+$res = $mysqli->query("SELECT * FROM user WHERE name = '$username'
+AND password = '$password'");
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<pre class="codeex">
+						<code>
+$username = "Le_suisse";
+$password = "alpacas_are_not_llamas!";
+$res = $mysqli->query("SELECT * FROM user WHERE name = '$username'
+AND password = '$password'");
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<pre class="codeex">
+						<code data-noescape>
+$username = "Le_suisse";
+$password = "alpacas_are_not_llamas!<mark>' OR '1'='1</mark>";
+$res = $mysqli->query("SELECT * FROM user WHERE name = '$username'
+AND password = '$password'");
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<pre class="codeex">
+						<code data-noescape>
+SELECT * FROM user WHERE name = 'Le_suisse' AND
+password = 'alpacas_are_not_llamas!<mark>' OR '1'='1</mark>';
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections SQL</h2>
+					<h3>Contremesures</h3>
+					<ul>
+						<li>Requêtes préparées</li>
+						<li>Whitelisting</li>
+						<li>Utilisateur restreint pour accèder à la DB</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Injections de commande</h2>
+					<pre class="codeex">
+						<code data-noescape>
+$sha1 = $_GET['rev'];
+exec('git cat-file -p ' . $sha1, $output);
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections de commande</h2>
+					<pre class="codeex">
+						<code data-noescape>
+$sha1 = '660cd7<mark>; chmod -R 777 /</mark>';
+exec('git cat-file -p ' . $sha1, $output);
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>Injections de commande</h2>
+					<h3>Contremesures</h3>
+					<ul>
+						<li>Don't do it?</li>
+						<li>Sanitization</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Injections</h2>
+					<ul>
+						<li>LDAP</li>
+						<li>XML (XPath, XXE)</li>
+						<li>JSON</li>
+						<li>&hellip;</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Authentification et management de session</h2>
+					<ul>
+						<li>Stockage</li>
+						<li>Taille et entropie token de session</li>
+						<li>Aider vos utilisateurs</li>
+						<li>MFA (RFC4226, RFC6238, FIDO U2F) ?</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Côté utilisateur</h1>
+				</section>
+
+				<section>
+					<h2>Cross-site scripting (aka XSS)</h2>
+					<pre class="codeex">
+						<code>
+$html = '&lt;tr&gt;
+            &lt;td&gt;'. $this->getLabel() .':&lt;/td&gt;
+        &lt;/tr&gt;';
+return $html;
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>XSS</h2>
+					<pre class="codeex">
+						<code>
+$html = '&lt;tr&gt;
+            &lt;td&gt;'. 'submitted_by' .':&lt;/td&gt;
+        &lt;/tr&gt;';
+return $html;
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>XSS</h2>
+					<pre class="codeex">
+						<code>
+$html = '&lt;tr&gt;
+            &lt;td&gt;'. '&lt;script&gt;alert("Securimag")&lt;/script&gt;' .':&lt;/td&gt;
+        &lt;/tr&gt;';
+return $html;
+						</code>
+					</pre>
+				</section>
+
+				<section>
+					<h2>XSS</h2>
+					<h3>Contremesures</h3>
+					<ul>
+						<li>Pas d'insertion de données non traités selon le contexte</li>
+						<li>Moteur de template</li>
+						<li>Flag HTTPOnly sur vos cookies</li>
+						<li>Content Security Policy (CSP) &hearts;</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Cross-Site Request Forgery (aka CSRF)</h2>
+					<p>
+						Non vérification de la légitimité d'une requête avant un changement d'état
+					</p>
+				</section>
+
+				<section>
+					<h2>CSRF</h2>
+					<h3>Contremesures</h3>
+					<ul>
+						<li>Ajout de &laquo;token CSRF&raquo;</li>
+						<li>Double submit</li>
+						<li>CAPTCHA, réauthentification</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Clickjacking (UI redress attack)</h2>
+					<img src="data/clickjacking.png">
+				</section>
+
+				<section>
+					<h2>Clickjacking</h2>
+					<h3>Contremesures</h3>
+					<ul>
+						<li>Header X-Frame-Options</li>
+						<li>CSP 1.1+</li>
+						<li>Dernier recours : <em>FrameKiller script</em></li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Valable des deux côtés</h1>
+				</section>
+
+				<section>
+					<h2>Surveiller vos dépendances externes</h2>
+					<p>Maintenue et testée !</p>
+					<ul>
+						<li>Packages fournies avec le système</li>
+						<li>Composer</li>
+						<li>npm, Bower&hellip;</li>
+						<li>&hellip;</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>Lisez la doc !</h2>
+					<img src="data/fail_doc_reading.png">
+				</section>
+
+				<section>
+					<h2>Démo</h2>
+					<img src="data/panda_jail.jpg" height="450px">
+				</section>
+
+				<section>
+					<h1>Questions ?</h1>
+					<img alt="https://www.flickr.com/photos/stefrobrts/5519001192/" src="data/alpaca_questions.jpg" height="450px">
+				</section>
+
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+				slideNumber: true,
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'lib/js/classList.js', condition: function() { return !document.body.classList; } },
+					{ src: 'plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+					{ src: 'plugin/highlight/highlight.js', async: true, condition: function() { return !!document.querySelector( 'pre code' ); }, callback: function() { hljs.initHighlightingOnLoad(); } },
+					{ src: 'plugin/zoom-js/zoom.js', async: true },
+					{ src: 'plugin/notes/notes.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
