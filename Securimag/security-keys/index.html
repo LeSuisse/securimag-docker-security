@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>YubiKey, Nitrokey, USB Armory, Gnuk token…</title>
+
+		<meta name="description" content="YubiKey, Nitrokey, USB Armory, Gnuk token…">
+		<meta name="author" content="Thomas Gerbet">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
+
+		<link rel="stylesheet" href="css/reveal.css">
+		<link rel="stylesheet" href="css/theme/solarized-edited.css" id="theme">
+
+
+		<!-- Printing and PDF exports -->
+		<script>
+			var link = document.createElement( 'link' );
+			link.rel = 'stylesheet';
+			link.type = 'text/css';
+			link.href = window.location.search.match( /print-pdf/gi ) ? 'css/print/pdf.css' : 'css/print/paper.css';
+			document.getElementsByTagName( 'head' )[0].appendChild( link );
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+	</head>
+
+	<body>
+
+		<div class="reveal">
+
+			<!-- Any section element inside of this container is displayed as a slide -->
+			<div class="slides">
+
+				<section>
+					<a href="https://securimag.org/wp/"><img src="data/securimag.png" width="250px" style="border: none; box-shadow: none; position: relative; left: 45%; top: -25px;"></a>
+					<h3>YubiKey, Nitrokey, USB Armory, Gnuk token…</h3>
+					<p>09/02/2016</p>
+					<a href="https://www.yubico.com/products/yubikey-hardware/yubikey-neo/"><img src="data/yubikey_neo.png" width="225px" style="border: none; box-shadow: none;"></a>
+					<a href="https://www.yubico.com/yubikey4/"><img src="data/yubikey_4_nano.png" width="225px" style="border: none; box-shadow: none;"></a>
+					<a href="https://shop.nitrokey.com/shop/product/nitrokey-pro-3"><img src="data/nitrokey_pro.jpg" width="225px" style="border: none; box-shadow: none;"></a>
+				</section>
+
+				<section>
+					<h2>GPG smartcard</h2>
+					<ul>
+						<li>Offline master key</li>
+						<li>Subkeys</li>
+						<ul>
+							<li>Encryption</li>
+							<li>Signing</li>
+							<li>Authentication</li>
+						</ul>
+					</ul>
+				</section>
+
+				<section>
+					<h2>GPG smartcard</h2>
+					<h3>Encryption</h3>
+					<ul>
+						<li>Mail</li>
+						<li>Passwords file (the old school password manager)</li>
+						<li>…</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>GPG smartcard</h2>
+					<h3>Signing</h3>
+					<img src="data/commit_signed.png">
+				</section>
+
+				<section>
+					<h2>GPG smartcard</h2>
+					<h3>Authentication</h3>
+					<p>
+						<span style="text-decoration: line-through;">SSH agent</span> → GPG agent<br>
+						❤
+					</p>
+				</section>
+
+				<section>
+					<h2>2 factor authentication (2FA/MFA)</h2>
+					<ul>
+						<li>HOTP/TOTP</li>
+						<li>FIDO U2F</li>
+					</ul>
+				</section>
+
+				<section>
+					<h2>HOTP/TOTP</h2>
+					<img src="data/yubico_authenticator.png">
+				</section>
+
+				<section>
+					<h2>HMAC (RFC 2104)</h2>
+					<h3>Keyed-hash message authentication code</h3>
+					<p>Verify the data integrity and authentication of a message</p>
+					$\textit{HMAC}(K, m) = H \Bigl( (K' \oplus opad) \;||\; H \bigl( (K' \oplus ipad) \;||\; m \bigr) \Bigr)$
+				</section>
+
+				<section>
+					<h2>HOTP (RFC 4226)</h2>
+					<h3>HMAC-based One-time Password</h3>
+					<p>
+						$\textit{HOTP}(K, C) = \textit{Truncate}(\textit{HMAC}(K, C)) \land {0x7FFFFFFF}$
+						$\textit{HOTP-Value} = \textit{HOTP}(K, C) \pmod {10^d}$
+					</p>
+				</section>
+
+				<section>
+					<h2>TOTP (RFC 6238)</h2>
+					<h3>Time-based One-time Password</h3>
+					<p>
+						$TC = \textit{floor}((\textit{unixtime}(\textit{now}) − \textit{unixtime}(\textit{T0})) / \textit{TS})$
+						$TOTP = \textit{HOTP}(K, TC)$
+						$\textit{TOTP-Value} = TOTP \pmod {10^d}$
+					</p>
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<img src="data/google_fido_u2f.png">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Challenge-response</h3>
+					<img src="data/u2f_chall_response.svg" height="400px">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Phishing and MitM protection</h3>
+					<img src="data/u2f_phishing_mitm.svg" height="400px">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Application-specific keys (avoid user's tracking)</h3>
+					<img src="data/u2f_app_specific_key.svg" height="400px">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Application-specific keys (avoid user's tracking)</h3>
+					<img src="data/u2f_app_specific_key.svg" height="400px">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Key generation and storage (<a href="https://developers.yubico.com/U2F/Protocol_details/Key_generation.html">Yubico solution</a>)</h3>
+					<img src="data/u2f_yubico_key_generation.png" height="400px" style="border: none; box-shadow: none;">
+				</section>
+
+				<section>
+					<h2><a href="https://fidoalliance.org/download/"><abbr title="Fast IDentity Online">FIDO</abbr> <abbr title="Universal 2nd Factor">U2F</abbr></a></h2>
+					<h3>Device cloning detection</h3>
+					<img src="data/u2f_cloning_detection.svg" height="400px">
+				</section>
+
+				<section>
+					<h2><a href="https://github.com/Yubico/pam-u2f">pam_u2f</a></h2>
+					<p>
+						Pluggable authentication module
+					</p>
+					<p>
+						Go passwordless o/ || Strong authentication
+					</p>
+					<img src="data/pam_u2f_sudo.png">
+				</section>
+
+				<section>
+					<h2><abbr title="Personal Identity Verification">PIV</abbr> interface</h2>
+					<p>
+						I don't use it, but:
+						<ul>
+							<li>Built in support in Windows > 7</li>
+							<li>Code signing</li>
+							<li> SSH through PKCS11</li>
+							<li>Docker Content Trust</li>
+						</ul>
+					</p>
+				</section>
+
+				<section>
+					<ul>
+						<li>Secrets hard to compromise</li>
+						<li>Always with you</li>
+						<li>Easy to use</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Questions?</h1>
+					<img src="data/alpaca-questions.jpg" height="300px">
+					<img src="data/beers.jpg" height="300px">
+				</section>
+			</div>
+
+		</div>
+
+		<script src="lib/js/head.min.js"></script>
+		<script src="js/reveal.js"></script>
+
+		<script>
+
+			// Full list of configuration options available at:
+			// https://github.com/hakimel/reveal.js#configuration
+			Reveal.initialize({
+				controls: false,
+				progress: true,
+				history: true,
+				center: true,
+				slideNumber: true,
+
+				transition: 'none', // none/fade/slide/convex/concave/zoom
+
+				// Optional reveal.js plugins
+				dependencies: [
+					{ src: 'plugin/math/math.js', async: true }
+				]
+			});
+
+		</script>
+
+	</body>
+</html>
